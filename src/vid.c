@@ -8,6 +8,7 @@
 18 controlRegister // NOTE: QEMU emulated PL110 CR is at 0x18
 ********************************************************/
 #include <stdint.h>
+#include <stdarg.h>
 
 #include "defines.h"
 #include "vid.h"
@@ -223,11 +224,16 @@ int kprinti(int x) {
     kprintu(x);
 }
 
-int kprintf(char *fmt,...) {
-    int *ip;
+int kprintf(char *fmt, ...) {
+    va_list args;
+    va_start(args, fmt);
+    vkprintf(fmt, args);
+    va_end(args);
+}
+
+int vkprintf(char *fmt, va_list args) {
     char *cp;
     cp = fmt;
-    ip = (int *)&fmt + 1;
     while(*cp){
         if (*cp != '%'){
             kputc(*cp);
@@ -238,13 +244,13 @@ int kprintf(char *fmt,...) {
         }
         cp++;
         switch(*cp){
-            case 'c': kputc((char)*ip); break;
-            case 's': kprints((char *)*ip); break;
-            case 'd': kprinti(*ip); break;
-            case 'u': kprintu(*ip); break;
-            case 'x': kprintx(*ip); break;
+            case 'c': kputc((char)va_arg(args, int)); break;
+            case 's': kprints((char *)va_arg(args, char*)); break;
+            case 'd': kprinti(va_arg(args, int)); break;
+            case 'u': kprintu(va_arg(args, int)); break;
+            case 'x': kprintx(va_arg(args, int)); break;
         }
-        cp++; ip++;
+        cp++;
     }
 }
 
